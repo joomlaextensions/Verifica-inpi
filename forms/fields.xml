@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<form>
+
+	<fields addpath="/administrator/components/com_fabrik/elements" name="params">
+
+		<fieldset name="plg-cron-verificainpi">
+
+			<field name="connection_verifica"
+				type="connections"
+				description="Conexão da base de dados onde o código do pedido se encontra"
+				label="Conexão" />
+
+			<field name="table_verifica"
+				type="fabriktables"
+				connection_in_repeat="false"
+				label="Lista da Patente"
+				description="Lista onde o código do pedido se encontra"
+				observe="params_connection_verifica" />
+				
+			<field name="element_table_verifica"	
+				type="element"
+				required="true"
+				connection="params_connection_verifica"
+				connection_in_repeat="false"
+				description="Elemento que representa o código do pedido"
+				label="Rótulo Código do Pedido" 
+				table="params_table_verifica" />
+
+			<field name="table_verificainpi_alerta"
+
+				type="fabriktables"
+
+				connection_in_repeat="false"
+
+				label="Lista do Alerta"
+
+				observe="params_connection_verifica" />
+
+				
+
+			<field name="element_verificainpi_alerta_desc"	
+
+				type="element"
+
+				required="true"
+
+				connection="params_connection_verifica"
+
+				connection_in_repeat="false"
+
+				description=""
+
+				label="Rótulo Descrição Alerta" 
+
+				table="params_table_verificainpi_alerta" />
+
+				
+
+			<field name="element_verificainpi_alerta_status"	
+
+				type="element"
+
+				required="true"
+
+				connection="params_connection_verifica"
+
+				connection_in_repeat="false"
+
+				description=""
+
+				label="Rótulo Status Alerta" 
+
+				table="params_table_verificainpi_alerta" />
+
+				
+				<field name="element_verificainpi_alerta_data"	
+
+				type="element"
+
+				required="true"
+
+				connection="params_connection_verifica"
+
+				connection_in_repeat="false"
+
+				description=""
+
+				label="Rótulo Data" 
+
+				table="params_table_verificainpi_alerta" />
+
+				
+
+			<field name="table_verificainpi_inpi"
+
+				type="fabriktables"
+
+				connection_in_repeat="false"
+
+				label="Lista INPI"
+
+				observe="params_connection_verifica" />
+
+				
+
+			<field name="element_verificainpi_inpi_revista"	
+
+				type="element"
+
+				required="true"
+
+				connection="params_connection_verifica"
+
+				connection_in_repeat="false"
+
+				description=""
+
+				label="Rótulo Revista" 
+
+				table="params_table_verificainpi_inpi" />
+
+				
+
+			<field name="element_verificainpi_inpi_secao"	
+
+				type="element"
+
+				required="true"
+
+				connection="params_connection_verifica"
+
+				connection_in_repeat="false"
+
+				description=""
+
+				label="Rótulo Seção" 
+
+				table="params_table_verificainpi_inpi" />
+
+				
+
+			<field name="element_verificainpi_inpi_patentes_citadas"	
+
+				type="element"
+
+				required="true"
+
+				connection="params_connection_verifica"
+
+				connection_in_repeat="false"
+
+				description=""
+
+				label="Rótulo Patentes Citadas" 
+
+				table="params_table_verificainpi_inpi" />
+
+			
+
+			<field name="element_verificainpi_inpi_patentes_n_citadas"	
+
+				type="element"
+
+				required="true"
+
+				connection="params_connection_verifica"
+
+				connection_in_repeat="false"
+
+				description=""
+
+				label="Rótulo Patentes Não Citadas" 
+
+				table="params_table_verificainpi_inpi" />
+
+			<field name="element_verificainpi_inpi_data"	
+
+				type="element"
+
+				required="true"
+
+				connection="params_connection_verifica"
+
+				connection_in_repeat="false"
+
+				description=""
+
+				label="Rótulo Data" 
+
+				table="params_table_verificainpi_inpi" />
+
+
+
+		</fieldset>
+
+	</fields>
+
+</form>
