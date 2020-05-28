@@ -42,7 +42,6 @@ class PlgFabrik_CronVerificaInpi extends PlgFabrik_Cron {
 		$model = JModelLegacy::getInstance('VerificaInpi', 'FabrikModel', array('ignore_request' => true, 'params' => $params));
 		$ult_revista = (int) $model->getRevista()[0]->revista; //Obtém número da última revista verificada
 		$revista = isset($ult_revista) ? $ult_revista + 1 : '';	//Incrementa número da revista para a próxima ocorrênica 
-		$data = date('dmY');	//Obtém a data atual
 		$logMsg = '';
 
 		if(isset($revista) && !empty($revista)){
@@ -51,7 +50,7 @@ class PlgFabrik_CronVerificaInpi extends PlgFabrik_Cron {
 				$model->descompactaRevista($revista);	//Descompacta as pastas .zip 
 				if($model->statusUnzip()){
 					$cods = $model->getCodigoPatente();		//Obtem todos os dados do campo 'codigo' da tabela patentes.
-					$model->varrer($revista, $data, $cods);	//Realiza varredura, e efetua os alertas e registros no BD.
+					$model->varrer($revista, $cods);	//Realiza varredura, e efetua os alertas e registros no BD.
 				} else {
 					$logMsg .= "Arquivos corrompidos.<br>";	//Erro na descompactação dos arquivos.
 				}

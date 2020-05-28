@@ -8,6 +8,7 @@
  * @license     GNU/GPL http://www.gnu.org/copyleft/gpl.html
  */
 
+
 // No direct access
 defined('_JEXEC') or die('Restricted access');
 
@@ -33,7 +34,7 @@ class FabrikModelVerificaInpi extends FabModel {
 
 	protected $nomes_arq;
 	protected $nomes_arq_varredura;
-  protected $status_download;
+  	protected $status_download;
 	protected $status_unzip;
 	private $xml, $pro_tag, $revista, $data, $sufixo, $varridos, $secao;
 	protected $params;
@@ -67,17 +68,16 @@ class FabrikModelVerificaInpi extends FabModel {
 		parent::__construct($config);
 	}
 
-  public function statusDownload() {
+  	public function statusDownload() {
 		return $this->status_download;
-  }
+  	}
 
-
-  public function statusUnzip() {
-  	return $this->status_unzip;
+  	public function statusUnzip() {
+  		return $this->status_unzip;
 	}
 	
 	public function getLog() {
-  	return $this->log;
+  		return $this->log;
 	}
 
 	/**
@@ -155,7 +155,7 @@ class FabrikModelVerificaInpi extends FabModel {
 
 			$headers = @get_headers($url);
 			if(strpos($headers[1],'404') === false)		//Verifica se URL é valida para downloads.
-			{													
+			{											
 				$ch = curl_init($url);
 				
 				if (!is_dir(getcwd()."/tmp/Zip/")) {
@@ -208,7 +208,6 @@ class FabrikModelVerificaInpi extends FabModel {
 		foreach ($this->nomes_arq as $key => $value) {
 			$arquivo = getcwd()."/tmp/Zip//".$value;	//Local do arquivo .zip
 			$destino = getcwd()."/tmp/Arquivos//";	//Destino da descompactação
-
 			$zip = new \ZipArchive;
 			$zip->open($arquivo);
 
@@ -236,11 +235,9 @@ class FabrikModelVerificaInpi extends FabModel {
 		return $db->loadObjectList();
 	}
 
-	public function varrer($revista, $data, $cods){
+	public function varrer($revista, $cods){
 
 		$this->revista = $revista;
-		$this->data = $data;
-		$this->sufixo = $revista.'_'.$data.'.xml';
 
 		$this->nomes_arq_varredura[0] = 'Patente_';
 		$this->nomes_arq_varredura[1] = 'DesenhoIndustrial_';
@@ -258,8 +255,8 @@ class FabrikModelVerificaInpi extends FabModel {
 				$local = getcwd().'\Arquivos\\'.$value.$this->sufixo;
 			}*/
 
-			$local = getcwd() . '/tmp/Arquivos/' . $value . $this->sufixo;
-			if (file_exists($local)) {
+			$filesgb = glob(getcwd() . '/tmp/Arquivos/'. $value . $revista . '_' . '*.xml');
+			if (file_exists($filesgb[0])) {
 				if($key == 0){
 					$this->pro_tag = 'processo-patente';	//Tag's de controle do .xml de cada seção
 					$this->secao = 'Secao VI';
@@ -274,12 +271,12 @@ class FabrikModelVerificaInpi extends FabModel {
 					$this->secao = 'Secao VII';
 				}
 
-				$this->compare($cods, $local);
+				$this->compare($cods, $filesgb[0]);
 				$this->log .= "<hr>";
 				$this->gerarAlertas();
 				unset($this->varridos);
 			} else {
-				$this->log .= "The file $local does not exist<br>";
+				$this->log .= "The file does not exist<br>";
 			}
 		}
 	}
