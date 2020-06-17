@@ -62,6 +62,7 @@ class PlgFabrik_CronVerificaInpi extends PlgFabrik_Cron {
 		}
 
 		$logMsg .= $model->getLog();
+		$this->log = $logMsg;
 		FabrikWorker::log('plg.cron.verificainpi.information', $logMsg);
 
 	}
