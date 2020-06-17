@@ -226,10 +226,11 @@ class FabrikModelVerificaInpi extends FabModel {
 
 	public function getCodigoPatente(){
 		$attr_cod = preg_split("/___/", $this->params->get('element_table_verifica'));
+		$attr_proj = preg_split("/___/", $this->params->get('element_table_verifica_projeto'));
 		
 		$db = FabrikWorker::getDbo();
 		$query = $db->getQuery(true);
-		$query->select($attr_cod[1])->from($this->table_patente);
+		$query->select(array('id', $attr_cod[1] . ' AS codigoPedido', $attr_proj[1] . ' AS title'))->from($this->table_patente);
 		$db->setQuery($query);
 
 		return $db->loadObjectList();
@@ -288,18 +289,21 @@ class FabrikModelVerificaInpi extends FabModel {
 		if (is_array($this->xml->despacho) || is_object($this->xml->despacho)){
 			foreach ($this->xml->despacho as $des) {	//Loop percorre todo o arquivo xml, captando cada tag 'despacho'
 				foreach ($cods as $value) {
-					if((string)$des->{$this->pro_tag}->numero === $value->codigo_do_pedido){		//Compara códigos do BD com os códigos submetidos na revista.
+					if((string)$des->{$this->pro_tag}->numero === $value->codigoPedido){		//Compara códigos do BD com os códigos submetidos na revista.
 						$this->varridos[$id]['revista'] = $this->revista;
 						$this->varridos[$id]['secao'] = $this->secao;
 						$this->varridos[$id]['codigo'] = $des->codigo;
 						$this->varridos[$id]['titulo'] = $des->titulo;
 						$this->varridos[$id]['numero'] = (string) $des->{$this->pro_tag}->numero;
+						$this->varridos[$id]['idRow'] = $value->id;
 	
 	
-						if(isset($des->{$this->pro_tag}->titulo)){
+						if (isset($des->{$this->pro_tag}->titulo) && !empty($des->{$this->pro_tag}->titulo)){
 							$this->varridos[$id]['projeto'] = (string) $des->{$this->pro_tag}->titulo;
-						}else{
-							$this->varridos[$id]['projeto'] = '--';
+						} elseif (isset($value->title) && !empty($value->title)){
+							$this->varridos[$id]['projeto'] = $value->title;
+						} else {
+							$this->varridos[$id]['projeto'] = '--'; 
 						}
 	
 						$id++;
@@ -354,17 +358,38 @@ class FabrikModelVerificaInpi extends FabModel {
 		if(!array_key_exists('codigo', $this->varridos[0])){
 			$this->log .= "Nenhuma patente foi citada na revista ".$this->revista."<br>";
 		} else {
+			//Program to display complete URL 
+			$link = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF']; 
+		
+			$shortedLink = '';
+			if(preg_match('/administrator\//i', $link)){
+				$splited = preg_split('/administrator\//i', $link);
+				foreach($splited as $key => $value){
+					$shortedLink .= $value;
+				}
+			}
+
 			$alerta = new Alerta();
 
 			foreach ($this->varridos as $id => $value) {	//Preenche descrição de cada alerta
-				$desc = 'O pedido '.$value['numero'].' (Projeto : '.$value['projeto'].') foi mencionado na revista '.$value['revista'].', na '.$this->secao.'. No intuito : '.$value['titulo'].' ('.$value['codigo'].')';
-				
-				$this->log .= "<br><br>";
+				if(isset($value['numero']) && !empty($value['numero'])){
+					//Build the complete URL
+					if($shortedLink == ''){
+						$linkForAlert = $link . '?option=com_fabrik&view=details&formid=' .  $this->params->get('table') . '&rowid=' . $value['idRow'];
+					} else {
+						$linkForAlert = $shortedLink . '?option=com_fabrik&view=details&formid=' .  $this->params->get('table') . '&rowid=' . $value['idRow'];
+					}
 
-				$alerta->setDescricao($desc);
-				$alerta->setStatus('Nao tratado');
+					$desc = 'O pedido '.$value['numero'].' (Projeto : '.$value['projeto'].') foi mencionado na revista '.$value['revista'].', na '.$this->secao.'. No intuito : '.$value['titulo'].' ('.$value['codigo'].')';
+					$descricaoCompleta = '<a href="'.$linkForAlert.'">' . $desc . '</a>';
 
-				$this->createAlerta($alerta);
+					$this->log .= "<br><br>";
+
+					$alerta->setDescricao($descricaoCompleta);
+					$alerta->setStatus('Nao tratado');
+
+					$this->createAlerta($alerta);
+				}
 			}
 		}
 
