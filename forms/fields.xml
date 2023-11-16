@@ -36,6 +36,15 @@
 				label="Rótulo Título do Projeto" 
 				table="params_table_verifica" />
 
+			<field name="element_table_verifica_rede"	
+				type="element"
+				required="true"
+				connection="params_connection_verifica"
+				connection_in_repeat="false"
+				description="Elemento que representa a rede do pedido"
+				label="Rótulo Título da rede" 
+				table="params_table_verifica" />
+
 			<field name="table_verificainpi_alerta"
 				type="fabriktables"
 				connection_in_repeat="false"

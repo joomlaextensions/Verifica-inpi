@@ -28,13 +28,21 @@ require_once COM_FABRIK_FRONTEND . '/models/plugin-cron.php';
 class PlgFabrik_CronVerificaInpi extends PlgFabrik_Cron {
 
 	/**
+	 * Whether cron should automagically load table data
+	 *
+	 * @return  bool
+	 */
+	public function requiresTableData()
+	{
+		return false;
+	}
+
+	/**
 	 * Do the plugin action
 	 *
 	 * @param   array &$data data
 	 * @param   object  &$listModel  List model
 	 */
-
-
 	public function process(&$data, &$listModel)
 	{
 		$params = $this->getParams();

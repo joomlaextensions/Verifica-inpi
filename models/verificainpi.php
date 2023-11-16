@@ -178,7 +178,7 @@ class FabrikModelVerificaInpi extends FabModel {
 
 					$saida = curl_exec($ch);
 					if ($saida) {
-						$this->log .= "Download da revista " . $revista . '.zip' . "realizado!<br>";
+						$this->log .= "Download da revista " . $revista . '.zip' . " realizado!<br>";
 					}	else {
 						$this->log .= "Erro no download da revista " . $revista . '.zip' . "<br>";
 						$this->status_download = false;
@@ -188,9 +188,9 @@ class FabrikModelVerificaInpi extends FabModel {
 					curl_close($ch);
 				}
 			} else {
-				$this->log .= "URL Not Exists<br>";
-			  $this->status_download = false;
-			  return;
+				$this->log .= "URL ($url) Not Exists<br>";
+			  	//$this->status_download = false;
+			  	//return;
 			}
 		}
 
@@ -208,6 +208,11 @@ class FabrikModelVerificaInpi extends FabModel {
 		foreach ($this->nomes_arq as $key => $value) {
 			$arquivo = getcwd()."/tmp/Zip//".$value;	//Local do arquivo .zip
 			$destino = getcwd()."/tmp/Arquivos//";	//Destino da descompactação
+
+			if(!file_exists($arquivo)) {
+				continue;
+			}
+
 			$zip = new \ZipArchive;
 			$zip->open($arquivo);
 
@@ -227,10 +232,11 @@ class FabrikModelVerificaInpi extends FabModel {
 	public function getCodigoPatente(){
 		$attr_cod = preg_split("/___/", $this->params->get('element_table_verifica'));
 		$attr_proj = preg_split("/___/", $this->params->get('element_table_verifica_projeto'));
+		$attr_rede = preg_split("/___/", $this->params->get('element_table_verifica_rede'));
 		
 		$db = FabrikWorker::getDbo();
 		$query = $db->getQuery(true);
-		$query->select(array('id', $attr_cod[1] . ' AS codigoPedido', $attr_proj[1] . ' AS title'))->from($this->table_patente);
+		$query->select(array('id', $attr_cod[1] . ' AS codigoPedido', $attr_proj[1] . ' AS title', 'rede', $attr_rede[1] . ' AS rede'))->from($this->table_patente);
 		$db->setQuery($query);
 
 		return $db->loadObjectList();
@@ -245,33 +251,37 @@ class FabrikModelVerificaInpi extends FabModel {
 		$this->nomes_arq_varredura[2] = 'Contratos_';
 		$this->nomes_arq_varredura[3] = 'Programa_';
 
+		// BEGIN - Search for megazine RM
+		$this->nomes_arq_varredura[4] = 'RM';
+		// END - Search for megazine RM
+
 		foreach ($this->nomes_arq_varredura as $key => $value) {
 			$this->log .= "<br>VARRENDO SEÇÃO $value<br><hr>";
-
-			/*
-			if($key == 4){
-				$local = getcwd().'\Arquivos\\'.$value.$this->revista;
+			
+			// BEGIN - Search for megazine RM
+			$filesgb = glob(getcwd() . '/tmp/Arquivos/'. $value . $revista . '*.xml');
+			if(!file_exists($filesgb[0])) {
+				$filesgb = glob(getcwd() . '/tmp/Arquivos/'. $revista . '.xml');
 			}
-			else{
-				$local = getcwd().'\Arquivos\\'.$value.$this->sufixo;
-			}*/
-
-			$filesgb = glob(getcwd() . '/tmp/Arquivos/'. $value . $revista . '_' . '*.xml');
+			// END - Search for megazine RM
+      
 			if (file_exists($filesgb[0])) {
 				if($key == 0){
 					$this->pro_tag = 'processo-patente';	//Tag's de controle do .xml de cada seção
-					$this->secao = 'Secao VI';
+					$this->secao = 'Secao VI - PI e MU';
 				} elseif ($key == 1) {
 					$this->pro_tag = 'processo-patente';
-					$this->secao = 'Secao III';
+					$this->secao = 'Secao III - DI';
 				} elseif($key == 2){
 					$this->pro_tag = 'processo-contrato';
-					$this->secao = 'Secao II';
+					$this->secao = 'Secao II - CT';
 				} elseif ($key == 3) {
 					$this->pro_tag = 'processo-programa';
-					$this->secao = 'Secao VII';
+					$this->secao = 'Secao VII - PC';
+				} elseif($key == 4) {
+					$this->pro_tag = 'processo';
+					$this->secao = 'Secao V - RM';
 				}
-
 				$this->compare($cods, $filesgb[0]);
 				$this->log .= "<hr>";
 				$this->gerarAlertas();
@@ -286,16 +296,22 @@ class FabrikModelVerificaInpi extends FabModel {
 		$this->xml = simplexml_load_file($local); //carrega o arquivo XML e retornando um Array
 		$id = 0;
 
-		if (is_array($this->xml->despacho) || is_object($this->xml->despacho)){
+		if ((is_array($this->xml->despacho) || is_object($this->xml->despacho)) && isset($this->xml->despacho)){
 			foreach ($this->xml->despacho as $des) {	//Loop percorre todo o arquivo xml, captando cada tag 'despacho'
 				foreach ($cods as $value) {
-					if((string)$des->{$this->pro_tag}->numero === $value->codigoPedido){		//Compara códigos do BD com os códigos submetidos na revista.
+					$numeral = preg_replace('/\s+/', ' ', (string)$des->{$this->pro_tag}->numero);
+					$codigoPedido = preg_replace('/\s+/', ' ', $value->codigoPedido);
+					$numeral = str_replace(array(' ', '-'), '', $numeral);
+					$codigoPedido = str_replace(array(' ', '-'), '', $codigoPedido);  
+				 
+					if($numeral == $codigoPedido && ($numeral && $codigoPedido)) {
 						$this->varridos[$id]['revista'] = $this->revista;
 						$this->varridos[$id]['secao'] = $this->secao;
 						$this->varridos[$id]['codigo'] = $des->codigo;
 						$this->varridos[$id]['titulo'] = $des->titulo;
 						$this->varridos[$id]['numero'] = (string) $des->{$this->pro_tag}->numero;
 						$this->varridos[$id]['idRow'] = $value->id;
+						$this->varridos[$id]['rede'] = $value->rede;
 	
 	
 						if (isset($des->{$this->pro_tag}->titulo) && !empty($des->{$this->pro_tag}->titulo)){
@@ -314,6 +330,44 @@ class FabrikModelVerificaInpi extends FabModel {
 				}
 			}
 		}
+
+		// BEGIN - Search for megazine RM
+		if ((is_array($this->xml->processo) || is_object($this->xml->processo)) && isset($this->xml->processo)){
+			foreach ($this->xml->processo as $des) {	//Loop percorre todo o arquivo xml, captando cada tag 'despacho'
+				foreach ($cods as $value) {
+				
+					$numeral = preg_replace('/\s+/', ' ', (string) $des->attributes()->numero[0]);
+                    $codigoPedido = preg_replace('/\s+/', ' ', $value->codigoPedido);
+                    $numeral = str_replace(array(' ', '-'), '', $numeral);
+                    $codigoPedido = str_replace(array(' ', '-'), '', $codigoPedido);  
+
+					if(($numeral == $codigoPedido) && ($numeral && $codigoPedido)) {
+						$title = (string) $des->despachos->despacho->attributes()->nome;
+						$code = (string) $des->despachos->despacho->attributes()->codigo;
+						$this->varridos[$id]['revista'] = $this->revista;
+						$this->varridos[$id]['secao'] = $this->secao;
+						$this->varridos[$id]['codigo'] = $code;
+						$this->varridos[$id]['titulo'] = $title;
+						$this->varridos[$id]['numero'] = (string) $des->attributes()->numero[0];
+						$this->varridos[$id]['idRow'] = $value->id;
+						$this->varridos[$id]['rede'] = $value->rede;
+
+						if (isset($title) && !empty($title)){
+							$this->varridos[$id]['projeto'] = $title;
+						} elseif (isset($value->title) && !empty($value->title)){
+							$this->varridos[$id]['projeto'] = $value->title;
+						} else {
+							$this->varridos[$id]['projeto'] = '--';
+						}
+						$id++;
+						$this->log .= "<br><br>";
+						$this->log .= 'Adicionado '.$id.'. Codigo : '.$code.' Titulo : '.$title."<br>";
+						break;
+					} 
+				}
+			}
+		}
+		// END - Search for megazine RM
 
 		if(!isset($this->varridos)){
 			$this->varridos[0]['revista'] = $this->revista;
@@ -380,13 +434,14 @@ class FabrikModelVerificaInpi extends FabModel {
 						$linkForAlert = $shortedLink . '?option=com_fabrik&view=details&formid=' .  $this->params->get('table') . '&rowid=' . $value['idRow'];
 					}
 
-					$desc = 'O pedido '.$value['numero'].' (Projeto : '.$value['projeto'].') foi mencionado na revista '.$value['revista'].', na '.$this->secao.'. No intuito : '.$value['titulo'].' ('.$value['codigo'].')';
+					$desc = 'O pedido '.$value['numero'].' (Título da PI : '.$value['projeto'].') foi mencionado na revista '.$value['revista'].', na '.$this->secao.'. No intuito : '.$value['titulo'].' ('.$value['codigo'].')';
 					$descricaoCompleta = '<a href="'.$linkForAlert.'">' . $desc . '</a>';
 
 					$this->log .= "<br><br>";
 
 					$alerta->setDescricao($descricaoCompleta);
 					$alerta->setStatus('Nao tratado');
+					$alerta->setRede($value['rede']);
 
 					$this->createAlerta($alerta);
 				}
@@ -402,6 +457,7 @@ class FabrikModelVerificaInpi extends FabModel {
 		$attr_descricao = preg_split("/___/", $this->params->get('element_verificainpi_alerta_desc'));
 		$attr_situacao = preg_split("/___/", $this->params->get('element_verificainpi_alerta_status'));
 		$attr_data = preg_split("/___/", $this->params->get('element_verificainpi_alerta_data'));
+		$attr_rede = preg_split("/___/", $this->params->get('element_table_verifica_rede'));
 
 		// Get a db connection.
 		$db = JFactory::getDbo();
@@ -410,10 +466,10 @@ class FabrikModelVerificaInpi extends FabModel {
 		$query = $db->getQuery(true);
 
 		// Insert columns.
-		$columns = array($attr_descricao[1], $attr_situacao[1], $attr_data[1]);
+		$columns = array($attr_descricao[1], $attr_situacao[1], $attr_data[1], $attr_rede[1], 'tipo');
 
 		// Insert values.
-		$values = array($db->quote($a->getDescricao()), $db->quote($a->getStatus()), 'CURRENT_TIMESTAMP()');
+		$values = array($db->quote($a->getDescricao()), $db->quote($a->getStatus()), 'CURRENT_TIMESTAMP()', $db->quote($a->getRede()), $db->quote('PI'));
 
 		// Prepare the insert query.
 		$query

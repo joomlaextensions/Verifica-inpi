@@ -26,7 +26,15 @@ class Registro {
 			
 			foreach ($varridos as $key => $value) { 
 				foreach ($cods as $idx => $codigo) {
-					if((string) $value['numero'] == $codigo->codigoPedido){
+
+					// Jeison - 21-11-22 - Begin
+					$numeral =str_replace(array(' ','-'), '',(string)$value['numero']);
+					$codigoPedido=str_replace(array(' ','-'), '',$codigo->codigoPedido);
+					// End
+					//if((string) $value['numero'] == $codigo->codigoPedido){  - Substituido  pelo if abaixo.
+
+					 if($numeral == $codigoPedido){	
+
 						$this->aux_pos[$key] = $idx;
 	 					break;
 					}

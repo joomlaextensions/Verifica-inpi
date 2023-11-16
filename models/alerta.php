@@ -2,7 +2,7 @@
 
 class Alerta {
 
-	private $id, $descricao, $status, $data;
+	private $id, $descricao, $status, $data, $rede;
 
 	public function getId(){
 		return $this->id;
@@ -34,6 +34,14 @@ class Alerta {
 
 	public function setData(){
 		$this->data = date('d/m/Y H:i:s');
+	}
+
+	public function getRede(){
+		return $this->rede;
+	}
+
+	public function setRede($rede){
+		$this->rede = $rede;
 	}
 }
 
