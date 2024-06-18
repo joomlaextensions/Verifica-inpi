@@ -125,11 +125,11 @@ class FabrikModelVerificaInpi extends FabModel {
 
 
 	public function downloadRevista($revista){
-		$this->nomes_arq[0] = 'http://revistas.inpi.gov.br/txt/CT'.$revista.'.zip';
-		$this->nomes_arq[1] = 'http://revistas.inpi.gov.br/txt/DI'.$revista.'.zip';
-		$this->nomes_arq[2] = 'http://revistas.inpi.gov.br/txt/P'.$revista.'.zip';
-		$this->nomes_arq[3] = 'http://revistas.inpi.gov.br/txt/PC'.$revista.'.zip';
-		$this->nomes_arq[4] = 'http://revistas.inpi.gov.br/txt/RM'.$revista.'.zip';
+		$this->nomes_arq[0] = 'https://revistas.inpi.gov.br/txt/CT'.$revista.'.zip';
+		$this->nomes_arq[1] = 'https://revistas.inpi.gov.br/txt/DI'.$revista.'.zip';
+		$this->nomes_arq[2] = 'https://revistas.inpi.gov.br/txt/P'.$revista.'.zip';
+		$this->nomes_arq[3] = 'https://revistas.inpi.gov.br/txt/PC'.$revista.'.zip';
+		$this->nomes_arq[4] = 'https://revistas.inpi.gov.br/txt/RM'.$revista.'.zip';
 
 		foreach ($this->nomes_arq as $key => $url) {
 			switch ($key) {
@@ -162,10 +162,10 @@ class FabrikModelVerificaInpi extends FabModel {
 					mkdir(getcwd()."/tmp/Zip/", 0755, true);
 				}
 
-				if(file_exists($destino)){
-					$this->log .= "File in " . $destino . "already exists <br>"; 
-					$this->status_download = true;
-				} else {
+				//if(file_exists($destino)){
+				//	$this->log .= "File in " . $destino . "already exists <br>"; 
+				//	$this->status_download = true;
+				//} else {
 					$fp = fopen($destino, "wb");
 
 					curl_setopt($ch, CURLOPT_URL, $url);
@@ -186,7 +186,7 @@ class FabrikModelVerificaInpi extends FabModel {
 
 					fclose($fp);
 					curl_close($ch);
-				}
+				//}
 			} else {
 				$this->log .= "URL ($url) Not Exists<br>";
 			  	//$this->status_download = false;
@@ -219,9 +219,9 @@ class FabrikModelVerificaInpi extends FabModel {
 			if($zip->extractTo($destino) == TRUE){
 				$this->log .= "Arquivo descompactado com sucesso.<br>";
 			} else {
-				$this->log .= "O Arquivo não pode ser descompactado.<br>";
-				$this->status_unzip = false;
-				return;
+				$this->log .= "O Arquivo {$arquivo} não pode ser descompactado.<br>";
+				//$this->status_unzip = false;
+				//return;
 			}
 			$zip->close();
 		}
