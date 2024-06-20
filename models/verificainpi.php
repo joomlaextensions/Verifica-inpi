@@ -440,7 +440,7 @@ class FabrikModelVerificaInpi extends FabModel {
 					$this->log .= "<br><br>";
 
 					$alerta->setDescricao($descricaoCompleta);
-					$alerta->setStatus('Nao tratado');
+					$alerta->setStatus('0 - Nao tratado');
 					$alerta->setRede($value['rede']);
 
 					$this->createAlerta($alerta);
