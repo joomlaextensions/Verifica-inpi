@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <extension group="fabrik_cron" method="upgrade" type="plugin" version="1">
-	<name>plg_fabrik_cron_verificainpi</name>
-	<author>PITT/UFG</author>
+	<name>PLG_FABRIK_CRON_VERIFICAINPI</name>
+	<author>Jlowcode Organization</author>
 	<creationDate>March 2020</creationDate>
-	<copyright>Copyright (C) PITT/UFG. - All rights reserved.</copyright>
+	<copyright>Copyright (C) 2024 Jlowcode Org - All rights reserved.</copyright>
 	<license>GNU/GPL http://www.gnu.org/copyleft/gpl.html</license>
-	<authorEmail>suportepitt@gmail.com</authorEmail>
-	<authorUrl>https://pitt.prpi.ufg.br/pitt</authorUrl>
+	<authorEmail>contact@jlowcode.org</authorEmail>
+	<authorUrl>www.jlowcode.org</authorUrl>
 	<version>1.0</version>
-	<description>Verifica Patentes em Revista</description>
+	<description>PLG_FABRIK_CRON_VERIFICAINPI_DESCRIPTION</description>
 	<files>
 		<filename plugin="verificainpi">verificainpi.php</filename>
-		<folder>forms</folder>
 		<filename>index.html</filename>
+		<folder>forms</folder>
 		<folder>models</folder>
+		<folder>language</folder>
 	</files>
 </extension>

@@ -52,7 +52,7 @@ class PlgFabrik_CronVerificaInpi extends PlgFabrik_Cron {
 		$revista = isset($ult_revista) ? $ult_revista + 1 : '';	//Incrementa número da revista para a próxima ocorrênica 
 		$logMsg = '';
 
-		if(isset($revista) && !empty($revista)){
+		if(isset($revista) && !empty($revista)) {
 			$model->downloadRevista($revista); //Realiza downloads das seções da revist
 			if($model->statusDownload()){		//Verifica se downloads ocorreram com exito
 				$model->descompactaRevista($revista);	//Descompacta as pastas .zip 

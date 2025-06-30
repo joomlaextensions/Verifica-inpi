@@ -13,13 +13,12 @@
 defined('_JEXEC') or die('Restricted access');
 
 use Joomla\Utilities\ArrayHelper;
-
 use Joomla\Registry\Registry;
+use Joomla\CMS\Factory;
 
 jimport('joomla.application.component.model');
 
 require_once JPATH_SITE . '/plugins/fabrik_cron/verificainpi/models/registro.php';
-
 require_once JPATH_SITE . '/plugins/fabrik_cron/verificainpi/models/alerta.php';
 
 
@@ -36,7 +35,7 @@ class FabrikModelVerificaInpi extends FabModel {
 	protected $nomes_arq_varredura;
   	protected $status_download;
 	protected $status_unzip;
-	private $xml, $pro_tag, $revista, $data, $sufixo, $varridos, $secao;
+	protected $xml, $pro_tag, $revista, $data, $sufixo, $varridos, $secao;
 	protected $params;
 	protected $table_alerta;
 	protected $table_patente;
@@ -134,19 +133,19 @@ class FabrikModelVerificaInpi extends FabModel {
 		foreach ($this->nomes_arq as $key => $url) {
 			switch ($key) {
 				case 0:
-					$destino = getcwd()."/tmp/Zip//CT".$revista.'.zip';	//Destino da descompactação
+					$destino = JPATH_SITE . "/tmp/Zip//CT".$revista.'.zip';	//Destino da descompactação
 					break;
 				case 1:
-					$destino = getcwd()."/tmp/Zip//DI".$revista.'.zip';	//Destino da descompactação
+					$destino = JPATH_SITE . "/tmp/Zip//DI".$revista.'.zip';	//Destino da descompactação
 					break;
 				case 2:
-					$destino = getcwd()."/tmp/Zip//P".$revista.'.zip';	//Destino da descompactação
+					$destino = JPATH_SITE . "/tmp/Zip//P".$revista.'.zip';	//Destino da descompactação
 					break;
 				case 3:
-					$destino = getcwd()."/tmp/Zip//PC".$revista.'.zip';	//Destino da descompactação
+					$destino = JPATH_SITE . "/tmp/Zip//PC".$revista.'.zip';	//Destino da descompactação
 					break;
 				case 4:
-					$destino = getcwd()."/tmp/Zip//RM".$revista.'.zip';	//Destino da descompactação
+					$destino = JPATH_SITE . "/tmp/Zip//RM".$revista.'.zip';	//Destino da descompactação
 					break;
 				default:
 					$this->log .=  "Arquivo destino não encontrado.<br>";
@@ -158,8 +157,8 @@ class FabrikModelVerificaInpi extends FabModel {
 			{											
 				$ch = curl_init($url);
 				
-				if (!is_dir(getcwd()."/tmp/Zip/")) {
-					mkdir(getcwd()."/tmp/Zip/", 0755, true);
+				if (!is_dir(JPATH_SITE . "/tmp/Zip/")) {
+					mkdir(JPATH_SITE . "/tmp/Zip/", 0755, true);
 				}
 
 				//if(file_exists($destino)){
@@ -206,8 +205,8 @@ class FabrikModelVerificaInpi extends FabModel {
 		$this->nomes_arq[4] = 'RM'.$revista.'.zip';
 
 		foreach ($this->nomes_arq as $key => $value) {
-			$arquivo = getcwd()."/tmp/Zip//".$value;	//Local do arquivo .zip
-			$destino = getcwd()."/tmp/Arquivos//";	//Destino da descompactação
+			$arquivo = JPATH_SITE . "/tmp/Zip//".$value;	//Local do arquivo .zip
+			$destino = JPATH_SITE . "/tmp/Arquivos//";	//Destino da descompactação
 
 			if(!file_exists($arquivo)) {
 				continue;
@@ -216,14 +215,16 @@ class FabrikModelVerificaInpi extends FabModel {
 			$zip = new \ZipArchive;
 			$zip->open($arquivo);
 
-			if($zip->extractTo($destino) == TRUE){
-				$this->log .= "Arquivo descompactado com sucesso.<br>";
-			} else {
-				$this->log .= "O Arquivo {$arquivo} não pode ser descompactado.<br>";
-				//$this->status_unzip = false;
-				//return;
+			if($zip->open($arquivo) === true) {
+				if($zip->extractTo($destino) == TRUE){
+					$this->log .= "Arquivo descompactado com sucesso.<br>";
+				} else {
+					$this->log .= "O Arquivo {$arquivo} não pode ser descompactado.<br>";
+					//$this->status_unzip = false;
+					//return;
+				}
+				$zip->close();
 			}
-			$zip->close();
 		}
 
 		$this->status_unzip = true;
@@ -242,8 +243,8 @@ class FabrikModelVerificaInpi extends FabModel {
 		return $db->loadObjectList();
 	}
 
-	public function varrer($revista, $cods){
-
+	public function varrer($revista, $cods)
+	{
 		$this->revista = $revista;
 
 		$this->nomes_arq_varredura[0] = 'Patente_';
@@ -259,9 +260,9 @@ class FabrikModelVerificaInpi extends FabModel {
 			$this->log .= "<br>VARRENDO SEÇÃO $value<br><hr>";
 			
 			// BEGIN - Search for megazine RM
-			$filesgb = glob(getcwd() . '/tmp/Arquivos/'. $value . $revista . '*.xml');
+			$filesgb = glob(JPATH_SITE   . '/tmp/Arquivos/'. $value . $revista . '*.xml');
 			if(!file_exists($filesgb[0])) {
-				$filesgb = glob(getcwd() . '/tmp/Arquivos/'. $revista . '.xml');
+				$filesgb = glob(JPATH_SITE   . '/tmp/Arquivos/'. $revista . '.xml');
 			}
 			// END - Search for megazine RM
       
@@ -285,7 +286,7 @@ class FabrikModelVerificaInpi extends FabModel {
 				$this->compare($cods, $filesgb[0]);
 				$this->log .= "<hr>";
 				$this->gerarAlertas();
-				unset($this->varridos);
+				$this->varridos = [];
 			} else {
 				$this->log .= "The file does not exist<br>";
 			}
@@ -369,22 +370,21 @@ class FabrikModelVerificaInpi extends FabModel {
 		}
 		// END - Search for megazine RM
 
-		if(!isset($this->varridos)){
+		if(empty($this->varridos)){
+			$this->varridos = Array();
 			$this->varridos[0]['revista'] = $this->revista;
 			$this->varridos[0]['secao'] = $this->secao;
-		}	
-
+		}
 	}
 
 	public function createRegistro(Registro $r){	//Cria novo registro na TABLE_VERIFICA.
+		$db = Factory::getContainer()->get('DatabaseDriver');
+
 		$attr_revista = preg_split("/___/", $this->params->get('element_verificainpi_inpi_revista'));
 		$attr_secao = preg_split("/___/", $this->params->get('element_verificainpi_inpi_secao'));
 		$attr_patentes_citadas = preg_split("/___/", $this->params->get('element_verificainpi_inpi_patentes_citadas'));
 		$attr_patentes_n_citadas = preg_split("/___/", $this->params->get('element_verificainpi_inpi_patentes_n_citadas'));
 		$attr_data = preg_split("/___/", $this->params->get('element_verificainpi_inpi_data'));
-
-		// Get a db connection.
-		$db = JFactory::getDbo();
 
 		// Create a new query object.
 		$query = $db->getQuery(true);
@@ -396,10 +396,9 @@ class FabrikModelVerificaInpi extends FabModel {
 		$values = array('CURRENT_TIMESTAMP()', $r->getRevista(), $db->quote($r->getSecao()), $db->quote($r->getPatentesCitadas()), $db->quote($r->getPatentes_N_Citadas()));
 
 		// Prepare the insert query.
-		$query
-				->insert($db->quoteName($this->table_inpi))
-				->columns($db->quoteName($columns))
-				->values(implode(',', $values));
+		$query->insert($db->quoteName($this->table_inpi))
+			->columns($db->quoteName($columns))
+			->values(implode(',', $values));
 
 		// Set the query using our newly populated query object and execute it.
 		$db->setQuery($query);
@@ -442,6 +441,7 @@ class FabrikModelVerificaInpi extends FabModel {
 					$alerta->setDescricao($descricaoCompleta);
 					$alerta->setStatus('0 - Nao tratado');
 					$alerta->setRede($value['rede']);
+					$alerta->setIdPi($value['idRow']);
 
 					$this->createAlerta($alerta);
 				}
@@ -454,29 +454,26 @@ class FabrikModelVerificaInpi extends FabModel {
 	}
 
 	public function createAlerta(Alerta $a){	//Cria novo alerta na tabela TABLE_ALERTA.
+		$db = Factory::getContainer()->get('DatabaseDriver');
+
 		$attr_descricao = preg_split("/___/", $this->params->get('element_verificainpi_alerta_desc'));
 		$attr_situacao = preg_split("/___/", $this->params->get('element_verificainpi_alerta_status'));
 		$attr_data = preg_split("/___/", $this->params->get('element_verificainpi_alerta_data'));
 		$attr_rede = preg_split("/___/", $this->params->get('element_table_verifica_rede'));
 
-		// Get a db connection.
-		$db = JFactory::getDbo();
-
 		// Create a new query object.
 		$query = $db->getQuery(true);
 
 		// Insert columns.
-		$columns = array($attr_descricao[1], $attr_situacao[1], $attr_data[1], $attr_rede[1], 'tipo');
+		$columns = array($attr_descricao[1], $attr_situacao[1], $attr_data[1], $attr_rede[1], 'tipo', 'id_da_pi', 'codigo');
 
 		// Insert values.
-		$values = array($db->quote($a->getDescricao()), $db->quote($a->getStatus()), 'CURRENT_TIMESTAMP()', $db->quote($a->getRede()), $db->quote('PI'));
+		$values = array($db->quote($a->getDescricao()), $db->quote($a->getStatus()), 'CURRENT_TIMESTAMP()', $db->quote($a->getRede()), $db->quote('PI'), $db->quote($a->getIdPi()), $db->quote($a->getIdPi()));
 
 		// Prepare the insert query.
-		$query
-				->insert($db->quoteName($this->table_alerta))
-				->columns($db->quoteName($columns))
-				->values(implode(',', $values));
-
+		$query->insert($db->quoteName($this->table_alerta))
+			->columns($db->quoteName($columns))
+			->values(implode(',', $values));
 
 		// Set the query using our newly populated query object and execute it.
 		$db->setQuery($query);

@@ -2,7 +2,7 @@
 
 class Alerta {
 
-	private $id, $descricao, $status, $data, $rede;
+	private $id, $descricao, $status, $data, $rede, $idPi;
 
 	public function getId(){
 		return $this->id;
@@ -42,6 +42,14 @@ class Alerta {
 
 	public function setRede($rede){
 		$this->rede = $rede;
+	}
+
+	public function getIdPi() {
+		return $this->idPi;
+	}
+
+	public function setIdPi($idPi) {
+		$this->idPi = $idPi;
 	}
 }
 

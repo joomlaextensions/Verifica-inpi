@@ -11,6 +11,8 @@
 
 defined('_JEXEC') or die('Restricted access');
 
+use Joomla\CMS\Language\Text;
+
 class Registro {
 
 	private $id, $revista, $secao, $patentesCitadas = '//', $patentes_N_Citadas = '//', $aux_pos;
@@ -86,7 +88,7 @@ class Registro {
 	}
 
 	public function getPatentesCitadas(){
-		return $this->patentesCitadas;
+		return $this->patentesCitadas == '//' ? Text::_("PLG_FABRIK_CRON_VERIFICAINPI_NOT_FOUND") : $this->patentesCitadas; 
 	}
 
 	public function setPatentesCitadas($patentesCitadas){
